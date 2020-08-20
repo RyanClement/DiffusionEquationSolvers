@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Program: diffEq1D_ForwardEuler
+Program: diffusionEq1D_ForwardEuler
 Created: Aug 2020
 @author: Ryan Clement (RRCC)
          scisoft@outlook.com
+
+Purpose: Solve the
+
+            u_t = alpha * u_xx
+
+on the interval (0,L) with boundary conditions
+
+            u = 10 for x = 0
+            and
+            u = 0 for x = 1.0
+
+and initial condition
+
+            u(x,0) = 0.0
 """
 
 
@@ -16,9 +30,26 @@ import matplotlib.animation as animation
 
 ### FUNCTIONS
 def plotComputedSteadyStateSolution():
+    """
+    Plots computed steady state solution.
+
+    Returns
+    -------
+    None.
+
+    """
     t = t0
     stop = 1
     tol  = 1e-5
+    # Advance several time steps
+    for j in range(3):
+        for i in range(1,xPts-1):
+            u[i] = uO[i] + dp*(uO[i-1] -2.0*uO[i] + uO[i+1])
+        # Enforce boundary conditions
+        u[0]  = lBC
+        u[-1] = rBC
+        uO[:] = u
+    # Advance solution until tolerance is met.
     while stop:
         maxDif = 0.0
         # Advance solution one time step
@@ -38,7 +69,7 @@ def plotComputedSteadyStateSolution():
         else:
             stop = 0
     # Plot solution
-    plt.plot(x,u,color='red')
+    plt.plot(x,u,color='blue')
     plt.title("Computed Steady State Solution")
     plt.ylabel("u")
     plt.xlabel("x")
@@ -46,10 +77,33 @@ def plotComputedSteadyStateSolution():
     plt.text(0.62,8.2,r'$u_t=\alpha\cdot u_{xx}$')
 
 def initAnim():
+    """
+    Initialization function for matplotlib.animation.FuncAnimation "init_func" argument.
+
+    Returns
+    -------
+    solPlt : TYPE
+        DESCRIPTION.
+
+    """
     solPlt.set_data(x,uO)
     return solPlt,
 
 def animate(n):
+    """
+    Animation function for matplotlib.animation.FuncAnimation "func" argument.
+
+    Parameters
+    ----------
+    n : dummy
+        Not used.
+
+    Returns
+    -------
+    solPlt : axis.plt
+        Plot object for animation.
+
+    """
     for i in range(1,xPts-1):
         u[i] = uO[i] + dp*(uO[i-1] -2.0*uO[i] + uO[i+1])
     # Enforce boundary conditions
@@ -58,7 +112,6 @@ def animate(n):
     uO[:] = u
     solPlt.set_data(x,u)
     return solPlt,
-
 
 
 
@@ -77,9 +130,6 @@ if __name__ == '__main__':
     uO   = np.zeros(xPts)             # Previous time-step value array
     lBC  = 10.0                       # Left boundary condition
     rBC  = 0.0                        # Right boundary condition
-    # Set initial conditions
-    uO[0]  = lBC
-    uO[-1] = rBC
 
     # Option 1: Plot Computed Steady State Solution
     # Option 2: Movie
