@@ -36,16 +36,16 @@ def analSol(a,x,t):
     Parameters
     ----------
     a : TYPE
-        DESCRIPTION.
+        Alpha.
     x : TYPE
-        DESCRIPTION.
+        Spatial mesh.
     t : TYPE
-        DESCRIPTION.
+        Time.
 
     Returns
     -------
     TYPE
-        DESCRIPTION.
+        Analytic solution array.
 
     """
     return np.exp(-a * np.pi**2 * t) * np.sin(np.pi*x)
@@ -57,12 +57,12 @@ def initCond(x):
     Parameters
     ----------
     x : TYPE
-        DESCRIPTION.
+        Spatial mesh.
 
     Returns
     -------
     TYPE
-        DESCRIPTION.
+        Initial condition array.
 
     """
     return np.sin(np.pi*x)
@@ -73,13 +73,14 @@ if __name__ == '__main__':
     a    = 10.0                           # alpha
     xMin = 0
     xMax = 1
-    xP   = 21                             # Number of mesh points
+    xP   = 51                             # Number of mesh points
     xN   = xP - 1                         # Number of zones
     x    = np.linspace(xMin,xMax,xP)      # Spatial mesh vector
     dx   = x[1] - x[0]
     dxs  = dx**2
     tsc  = 1.0/4.0                        # Time step control parameter
                                           # Note: a*dt/dx**2 = tsc (dimensionless)
+    dt   = dxs*tsc/a
     dpa  = -tsc                           # Dimensionless parameter a
     dpb  = 1.0 - 2.0*dpa                  # Dimensionless parameter b
     uBC0 = 0.0                            # Left boundary condition
@@ -107,12 +108,18 @@ if __name__ == '__main__':
         shape = (xP,xP),
         format = 'csr')
     # print(A.todense())
-
-    numSteps = 100
+    print('dt = {:0.5f}'.format(dt))
+    numSteps = 1000
+    time = dt*numSteps
+    aSol = analSol(a,x,time)
     for i in range(numSteps):
         u[:] = la.spsolve(A,b)
         b, u = u, b
+    plt.plot(x,b,'bo',label='Computed')
+    plt.plot(x,aSol,label='Analytic',color='red')
+    plt.legend()
+    plt.title(r'$u_t=\alpha\cdot u_{xx}$')
+    plt.text(0,.35,'Time = {:0.5f}s'.format(time))
+    plt.show()
 
-    plt.plot(x,b)
-    print(b)
 
